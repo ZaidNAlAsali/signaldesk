@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/ZaidNAlAsali/signaldesk/actions/workflows/ci.yml/badge.svg)](https://github.com/ZaidNAlAsali/signaldesk/actions/workflows/ci.yml)
 
-SignalDesk turns English and Arabic operational requests into structured categories, priorities, risk scores, recommended actions, and policy citations. AI provides decision support; a named reviewer still approves, rejects, or overrides every recommendation.
+SignalDesk turns English and Arabic operational requests into structured categories, priorities, risk scores, recommended actions, and policy citations. AI provides decision support; the demo requires an explicit approve, reject, or override step, but does not authenticate reviewer identity.
 
 ![SignalDesk decision console](docs/screenshots/signaldesk-dashboard.png)
 
@@ -102,7 +102,7 @@ uv run scripts/e2e_smoke.py
 docker compose down --volumes
 ```
 
-Compose starts PostgreSQL 17, applies Alembic migrations before the API starts, seeds fictional data, and launches the production frontend. Defaults are development-only and can be overridden through a local `.env` copied from `.env.example`.
+Compose starts PostgreSQL 17, applies Alembic migrations in a one-shot service before the API starts, seeds fictional data, and runs the frontend in production build/runtime mode. Ports bind to loopback by default because the demo has no authentication. Defaults are development-only and can be overridden through a local `.env` copied from `.env.example`.
 
 ## Analysis modes
 
@@ -193,7 +193,7 @@ uv run alembic upgrade head
 uv run alembic check
 ```
 
-GitHub Actions runs backend, frontend, secret-scan, and clean Docker Compose jobs on every push and pull request.
+GitHub Actions is configured to run backend, frontend, secret-scan, and clean Docker Compose jobs on pushes to `main` and on pull requests.
 
 ## Evaluation and benchmark
 
@@ -222,8 +222,8 @@ Latest measured median on the development laptop: **917.64 operations/second**, 
 - WebSocket origins are validated.
 - Application errors do not echo credentials or raw upstream responses.
 - Audit history is **tamper-evident**, not immutable.
-- Human approval is a product invariant, not merely interface copy.
-- Docker processes run as non-root users.
+- The workflow requires an explicit human decision step, but reviewer identity is unauthenticated in this demo.
+- Docker images declare non-root runtime users.
 
 This demo has no authentication or role-based authorization and must not be exposed to untrusted networks as-is. See [Safety and security](docs/safety.md) and [Security policy](SECURITY.md).
 

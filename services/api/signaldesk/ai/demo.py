@@ -70,7 +70,7 @@ class DemoAnalyzer(Analyzer):
         }
         rationale = (
             f"Demo analysis matched {category.value} indicators and assigned {priority.value} priority "
-            f"with a {risk}/100 risk score. Human approval is required before any action."
+            f"with a {risk}/100 risk score. Explicit human review is required before any action."
         )
         return AnalysisResult(
             provider="demo-rules",

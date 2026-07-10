@@ -91,6 +91,8 @@ def verify_audit_chain(session: Session, case_id: str) -> AuditVerificationRead:
     events = session.scalars(
         select(AuditEvent).where(AuditEvent.case_id == case_id).order_by(AuditEvent.sequence.asc())
     ).all()
+    if not events:
+        return AuditVerificationRead(valid=False, event_count=0, first_invalid_event_id=None)
     expected_previous = ""
     for expected_sequence, event in enumerate(events, start=1):
         expected_hash = _event_digest(
@@ -154,8 +156,15 @@ def case_to_read(case: Case) -> CaseRead:
 
 
 def save_analysis(session: Session, case: Case, result: AnalysisResult) -> Analysis:
+    locked_case = session.scalar(
+        select(Case).where(Case.id == case.id).with_for_update().execution_options(populate_existing=True)
+    )
+    if locked_case is None:
+        raise ValueError("Case no longer exists")
+    if locked_case.status not in {"new", "rejected"}:
+        raise ValueError("Only new or rejected cases can be analyzed")
     analysis = Analysis(
-        case_id=case.id,
+        case_id=locked_case.id,
         provider=result.provider,
         summary=result.summary,
         category=result.category.value,
@@ -167,13 +176,13 @@ def save_analysis(session: Session, case: Case, result: AnalysisResult) -> Analy
         citations_json=json.dumps([item.model_dump() for item in result.citations], ensure_ascii=False),
         redactions_json=json.dumps([item.model_dump() for item in result.redactions], ensure_ascii=False),
     )
-    case.category = result.category.value
-    case.priority = result.priority.value
-    case.status = "analyzed"
+    locked_case.category = result.category.value
+    locked_case.priority = result.priority.value
+    locked_case.status = "analyzed"
     session.add(analysis)
     add_audit(
         session,
-        case.id,
+        locked_case.id,
         "case.analyzed",
         result.provider,
         {
@@ -184,34 +193,39 @@ def save_analysis(session: Session, case: Case, result: AnalysisResult) -> Analy
     )
     session.commit()
     session.refresh(analysis)
-    session.refresh(case)
+    session.refresh(locked_case)
     return analysis
 
 
 def apply_decision(session: Session, case: Case, request: DecisionRequest) -> Decision:
-    if case.status != "analyzed":
+    locked_case = session.scalar(
+        select(Case).where(Case.id == case.id).with_for_update().execution_options(populate_existing=True)
+    )
+    if locked_case is None:
+        raise ValueError("Case no longer exists")
+    if locked_case.status != "analyzed":
         raise ValueError("Only analyzed cases can receive a decision")
     status_by_action = {"approve": "approved", "override": "overridden", "reject": "rejected"}
     if request.action == "override":
         if request.category is None and request.priority is None:
             raise ValueError("Override requires a category or priority change")
         if request.category:
-            case.category = request.category.value
+            locked_case.category = request.category.value
         if request.priority:
-            case.priority = request.priority.value
-    case.status = status_by_action[request.action]
-    decision = Decision(case_id=case.id, action=request.action, actor=request.actor, note=request.note)
+            locked_case.priority = request.priority.value
+    locked_case.status = status_by_action[request.action]
+    decision = Decision(case_id=locked_case.id, action=request.action, actor=request.actor, note=request.note)
     session.add(decision)
     add_audit(
         session,
-        case.id,
-        f"case.{case.status}",
+        locked_case.id,
+        f"case.{locked_case.status}",
         request.actor,
-        {"note": request.note, "category": case.category, "priority": case.priority},
+        {"note": request.note, "category": locked_case.category, "priority": locked_case.priority},
     )
     session.commit()
     session.refresh(decision)
-    session.refresh(case)
+    session.refresh(locked_case)
     return decision
 
 

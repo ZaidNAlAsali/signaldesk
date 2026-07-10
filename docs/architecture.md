@@ -34,9 +34,9 @@ The adapter owns endpoint details, retries, response extraction, schema validati
 
 ## Persistence and migrations
 
-SQLAlchemy models are the runtime persistence layer. Alembic owns production schema changes. The API container runs `alembic upgrade head` before Uvicorn starts.
+SQLAlchemy models are the runtime persistence layer. Alembic owns versioned schema changes for the containerized deployment path. Compose runs migrations in a one-shot service before starting the API.
 
-Audit sequences have a unique `(case_id, sequence)` constraint. PostgreSQL provides the primary Compose verification path. Concurrent append conflicts surface as transaction errors rather than silently creating duplicate sequence numbers. A higher-throughput production version would lock the case row or maintain an atomic per-case counter.
+Audit sequences have a unique `(case_id, sequence)` constraint. PostgreSQL workflow transitions and audit appends lock the case row, while the unique constraint remains a backstop. PostgreSQL provides the primary Compose verification path.
 
 ## Tamper-evident audit chain
 
@@ -50,7 +50,7 @@ Each audit hash covers a canonical serialization of:
 - timestamp
 - previous event hash
 
-Changing any stored field breaks that event and all following links. The verification endpoint reports the first invalid event. ORM hooks reject normal update and delete operations, but this does not make the table immutable. A privileged database operator can rewrite an entire chain.
+Changing any stored field breaks that event and all following links. The verification endpoint reports the first invalid event. ORM hooks reject normal update and delete operations. The PostgreSQL migration also installs a trigger that rejects row updates and deletes, and CI exercises that trigger. This still does not make the table immutable because a privileged database operator can disable controls and rewrite an entire chain.
 
 ## Real-time behavior
 

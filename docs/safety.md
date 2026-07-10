@@ -39,9 +39,9 @@ Analysis creates recommendations only. Separate decision endpoints require an ac
 
 ## Audit integrity
 
-Audit events are ordered per case and linked through SHA-256 hashes over canonical event data. A verification endpoint recomputes the chain and reports the first invalid event. SQLAlchemy hooks prevent updates and deletes through normal ORM use.
+Audit events are ordered per case and linked through SHA-256 hashes over canonical event data. A verification endpoint recomputes the chain, rejects missing history, and reports the first invalid event. SQLAlchemy hooks prevent updates and deletes through normal ORM use; the PostgreSQL migration adds a database trigger that rejects row mutations.
 
-This mechanism is **tamper-evident**, not immutable. A privileged operator could rewrite all rows and hashes. Stronger production controls could include database permissions, append-only triggers, signed checkpoints, external transparency storage, and independent log export.
+This mechanism is **tamper-evident**, not immutable. A privileged operator could disable database controls and rewrite all rows and hashes. Stronger production controls could include restricted trigger ownership, signed checkpoints, external transparency storage, and independent log export.
 
 ## Secrets and dependencies
 
@@ -49,7 +49,7 @@ This mechanism is **tamper-evident**, not immutable. A privileged operator could
 - `.env.example` contains placeholders and development-only defaults.
 - GitHub Actions scans tracked files with `detect-secrets`.
 - `pip-audit` and `npm audit` run in CI.
-- Container processes use unprivileged users.
+- Container images declare unprivileged runtime users.
 - No credential appears in evaluation or smoke-test artifacts.
 
 ## Required controls before real deployment
@@ -67,4 +67,4 @@ This mechanism is **tamper-evident**, not immutable. A privileged operator could
 
 ## Security verification
 
-Backend tests cover PII replacement, provider schema failures, safe missing-key handling, WebSocket origin rejection, hash-chain verification, tampering detection, and ORM append-only protection. The Compose smoke test covers bilingual decisions, citations, WebSockets, and valid audit chains against PostgreSQL.
+Backend tests cover PII replacement, provider schema failures, safe missing-key handling, WebSocket origin rejection, hash-chain verification, tampering detection, missing-history detection, and ORM append-only protection. When green, the CI Compose job exercises bilingual decisions, citations, WebSockets, and audit-chain verification against PostgreSQL.

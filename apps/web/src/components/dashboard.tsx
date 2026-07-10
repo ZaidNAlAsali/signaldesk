@@ -297,10 +297,10 @@ function CaseWorkspace({
                   <textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Record what you verified or changed..." />
                 </label>
                 <div className="decision-actions">
-                  <button className="approve-button" disabled={isPending} onClick={() => void onDecide({ action: "approve", actor: "Zaid AlAsali", note })} type="button">
+                  <button className="approve-button" disabled={isPending} onClick={() => void onDecide({ action: "approve", actor: "Demo reviewer", note })} type="button">
                     <Check size={17} />Approve
                   </button>
-                  <button className="reject-button" disabled={isPending} onClick={() => void onDecide({ action: "reject", actor: "Zaid AlAsali", note })} type="button">
+                  <button className="reject-button" disabled={isPending} onClick={() => void onDecide({ action: "reject", actor: "Demo reviewer", note })} type="button">
                     <X size={17} />Reject
                   </button>
                 </div>
@@ -313,7 +313,7 @@ function CaseWorkspace({
                     <select aria-label="Override priority" value={overridePriority} onChange={(event) => setOverridePriority(event.target.value as Priority)}>
                       {priorityOrder.map((priority) => <option value={priority} key={priority}>{priorityMeta[priority].label}</option>)}
                     </select>
-                    <button disabled={isPending} onClick={() => void onDecide({ action: "override", actor: "Zaid AlAsali", note, category: overrideCategory, priority: overridePriority })} type="button">
+                    <button disabled={isPending} onClick={() => void onDecide({ action: "override", actor: "Demo reviewer", note, category: overrideCategory, priority: overridePriority })} type="button">
                       Apply override
                     </button>
                   </div>
@@ -508,9 +508,9 @@ export function Dashboard() {
         </nav>
         <div className="sidebar-trust">
           <ShieldCheck size={20} />
-          <div><strong>Human approval enforced</strong><span>No autonomous actions</span></div>
+          <div><strong>Human review workflow</strong><span>No autonomous actions</span></div>
         </div>
-        <div className="sidebar-profile"><span>ZA</span><div><strong>Zaid AlAsali</strong><small>Operations reviewer</small></div><ChevronRight size={17} /></div>
+        <div className="sidebar-profile"><span>DR</span><div><strong>Demo Reviewer</strong><small>Fictional operator</small></div><ChevronRight size={17} /></div>
       </aside>
 
       <section className="main-surface">

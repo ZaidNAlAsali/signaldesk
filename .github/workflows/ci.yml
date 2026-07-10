@@ -77,6 +77,13 @@ jobs:
         run: docker compose up --build --detach --wait --wait-timeout 180
       - name: End-to-end workflows
         run: uv run scripts/e2e_smoke.py
+      - name: Verify PostgreSQL append-only audit control
+        run: |
+          if docker compose exec -T db psql -v ON_ERROR_STOP=1 -U signaldesk -d signaldesk -c "UPDATE audit_events SET actor = 'tamper-test' WHERE sequence = 1;"; then
+            echo "audit event update unexpectedly succeeded"
+            exit 1
+          fi
+          echo "PostgreSQL rejected audit event mutation as expected"
       - name: Container status and logs
         if: always()
         run: |

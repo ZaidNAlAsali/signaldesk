@@ -1,5 +1,13 @@
 name: signaldesk
 
+x-api-environment: &api-environment
+  SIGNALDESK_ENVIRONMENT: production
+  SIGNALDESK_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-signaldesk}:${POSTGRES_PASSWORD:-signaldesk_dev_only}@db:5432/${POSTGRES_DB:-signaldesk}
+  SIGNALDESK_AUTO_CREATE_SCHEMA: "false"
+  SIGNALDESK_SEED_DEMO_DATA: "true"
+  SIGNALDESK_AI_PROVIDER: demo
+  SIGNALDESK_CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+
 services:
   db:
     image: postgres:17-alpine
@@ -16,21 +24,27 @@ services:
       retries: 12
     restart: unless-stopped
 
-  api:
+  migrate:
+    image: signaldesk-api:local
     build:
       context: ./services/api
-    environment:
-      SIGNALDESK_ENVIRONMENT: production
-      SIGNALDESK_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-signaldesk}:${POSTGRES_PASSWORD:-signaldesk_dev_only}@db:5432/${POSTGRES_DB:-signaldesk}
-      SIGNALDESK_AUTO_CREATE_SCHEMA: "false"
-      SIGNALDESK_SEED_DEMO_DATA: "true"
-      SIGNALDESK_AI_PROVIDER: demo
-      SIGNALDESK_CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
-    ports:
-      - "8000:8000"
+    environment: *api-environment
+    command: ["uv", "run", "alembic", "upgrade", "head"]
     depends_on:
       db:
         condition: service_healthy
+    restart: "no"
+
+  api:
+    image: signaldesk-api:local
+    build:
+      context: ./services/api
+    environment: *api-environment
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "uv", "run", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
       interval: 5s
@@ -44,7 +58,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       api:
         condition: service_healthy

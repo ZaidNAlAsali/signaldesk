@@ -36,8 +36,8 @@ Analysis, workflow state, decision records, and audit events need consistent tra
 
 ## Evidence to quote accurately
 
-- 14 backend tests passed with more than 80% measured application coverage in the local verification run.
-- 8 frontend tests passed, including API error handling and Arabic RTL behavior.
+- Backend CI runs pytest and enforces at least 80% measured application coverage.
+- Frontend CI runs tests, linting, type checking, dependency auditing, and a production build.
 - The 24-case authored bilingual regression suite passed all documented category, priority, policy, and redaction expectations.
 - The local deterministic benchmark measured 917.64 median operations per second, 0.961 ms p50, and 1.6796 ms p99 over 5,000 operations on the documented development laptop.
 - GitHub Models was called live with two synthetic English and Arabic requests using strict structured output.

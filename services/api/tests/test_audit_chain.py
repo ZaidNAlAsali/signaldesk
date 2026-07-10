@@ -38,6 +38,19 @@ def test_audit_chain_is_valid_and_detects_database_tampering(db):
     assert tampered.first_invalid_event_id is not None
 
 
+def test_audit_chain_rejects_missing_genesis_event(db):
+    case = create_case(db)
+    add_audit(db, case.id, "case.created", "QA", {})
+    db.commit()
+
+    db.execute(text("DELETE FROM audit_events WHERE case_id = :case_id"), {"case_id": case.id})
+    db.commit()
+
+    missing = verify_audit_chain(db, case.id)
+    assert missing.valid is False
+    assert missing.event_count == 0
+
+
 def test_audit_events_cannot_be_updated_or_deleted_through_orm(db):
     case = create_case(db)
     event = add_audit(db, case.id, "case.created", "QA", {})

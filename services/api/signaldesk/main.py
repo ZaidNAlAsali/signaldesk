@@ -5,6 +5,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, WebSocket, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session, selectinload
+from starlette.concurrency import run_in_threadpool
 
 from .ai.base import ProviderError
 from .ai.factory import get_analyzer
@@ -133,10 +134,12 @@ async def analyze_case(case_id: str, session: Session = Depends(get_session)) ->
     if case.status not in {"new", "rejected"}:
         raise HTTPException(status_code=409, detail="Only new or rejected cases can be analyzed")
     try:
-        result = get_analyzer(settings).analyze(case, session)
+        result = await run_in_threadpool(get_analyzer(settings).analyze, case, session)
         analysis = save_analysis(session, case, result)
     except ProviderError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     await manager.broadcast({"type": "case.analyzed", "case_id": case.id})
     return analysis_to_read(analysis)
 

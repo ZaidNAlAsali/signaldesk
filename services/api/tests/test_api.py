@@ -18,12 +18,18 @@ def test_full_human_in_the_loop_workflow(client):
     assert analysis_response.status_code == 200
     analysis = analysis_response.json()
     assert analysis["priority"] == "high"
+    assert client.post(f"/api/cases/{case['id']}/analyze").status_code == 409
 
     decision_response = client.post(
         f"/api/cases/{case['id']}/decision",
-        json={"action": "approve", "actor": "Zaid AlAsali", "note": "Validated incident impact."},
+        json={"action": "approve", "actor": "Demo reviewer", "note": "Validated incident impact."},
     )
     assert decision_response.status_code == 200
+    duplicate_decision = client.post(
+        f"/api/cases/{case['id']}/decision",
+        json={"action": "reject", "actor": "Demo reviewer", "note": "Conflicting decision."},
+    )
+    assert duplicate_decision.status_code == 409
 
     updated = client.get(f"/api/cases/{case['id']}").json()
     assert updated["status"] == "approved"

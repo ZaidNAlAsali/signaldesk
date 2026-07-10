@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SignalDesk | Operations Decision Console",
-  description: "Auditable AI-assisted operations triage with human approval.",
+  description: "Auditable AI-assisted operations triage with an explicit human review workflow.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
