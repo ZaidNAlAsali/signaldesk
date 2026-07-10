@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/api/uv.lock
+      - name: Install backend dependencies
+        run: uv sync --frozen --all-groups
+      - name: Ruff
+        run: uv run ruff check .
+      - name: Tests and coverage
+        run: uv run pytest --cov=signaldesk --cov-report=term-missing --cov-fail-under=80
+      - name: Verify migrations
+        env:
+          SIGNALDESK_DATABASE_URL: sqlite:///./ci-migration.db
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
+          uv run alembic downgrade base
+      - name: Audit Python dependencies
+        run: uv run pip-audit
+      - name: Deterministic evaluation
+        run: uv run python -m scripts.evaluate
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Audit JavaScript dependencies
+        run: npm audit --audit-level=high
+      - name: Tests
+        run: npm test
+      - name: ESLint
+        run: npm run lint
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build
+
+  compose:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Build and start clean stack
+        run: docker compose up --build --detach --wait --wait-timeout 180
+      - name: End-to-end workflows
+        run: uv run scripts/e2e_smoke.py
+      - name: Container status and logs
+        if: always()
+        run: |
+          docker compose ps
+          docker compose logs --no-color > compose.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compose-logs
+          path: compose.log
+      - name: Tear down stack
+        if: always()
+        run: docker compose down --volumes --remove-orphans
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - name: Scan repository for secrets
+        run: uvx detect-secrets scan --all-files --exclude-files 'package-lock.json|uv.lock|eval/results/.*' > secrets.baseline
+      - name: Fail on detected secrets
+        run: |
+          python - <<'PY'
+          import json
+          data = json.load(open('secrets.baseline'))
+          findings = sum(len(items) for items in data.get('results', {}).values())
+          print(f"detected_secret_findings={findings}")
+          raise SystemExit(1 if findings else 0)
+          PY
