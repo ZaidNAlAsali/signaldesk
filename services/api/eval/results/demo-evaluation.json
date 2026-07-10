@@ -1,0 +1,35 @@
+{
+  "evaluation": "SignalDesk deterministic demo triage",
+  "dataset": "cases.jsonl",
+  "case_count": 24,
+  "metrics": {
+    "category_accuracy": 1.0,
+    "priority_accuracy": 1.0,
+    "joint_accuracy": 1.0,
+    "policy_top1_accuracy": 1.0,
+    "redaction_accuracy": 1.0
+  },
+  "by_language": {
+    "en": {
+      "case_count": 14,
+      "category_accuracy": 1.0,
+      "priority_accuracy": 1.0,
+      "joint_accuracy": 1.0,
+      "policy_top1_accuracy": 1.0,
+      "redaction_accuracy": 1.0
+    },
+    "ar": {
+      "case_count": 10,
+      "category_accuracy": 1.0,
+      "priority_accuracy": 1.0,
+      "joint_accuracy": 1.0,
+      "policy_top1_accuracy": 1.0,
+      "redaction_accuracy": 1.0
+    }
+  },
+  "failures": [],
+  "limitations": [
+    "This is a small, authored regression set, not an estimate of production model quality.",
+    "The deterministic analyzer is designed for reproducible demos and tests, not semantic generalization."
+  ]
+}

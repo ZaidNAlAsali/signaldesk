@@ -1,0 +1,23 @@
+{
+  "benchmark": "SignalDesk deterministic triage pipeline",
+  "scope": "PII redaction, keyword classification, policy retrieval, and Pydantic validation; excludes HTTP and persistence",
+  "iterations_per_repeat": 1000,
+  "repeats": 5,
+  "total_operations": 5000,
+  "results": {
+    "throughput_ops_per_second_median": 917.64,
+    "throughput_ops_per_second_min": 906.95,
+    "latency_ms_p50": 0.961,
+    "latency_ms_p95": 1.4411,
+    "latency_ms_p99": 1.6796
+  },
+  "environment": {
+    "python": "3.14.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 165 Stepping 2, GenuineIntel"
+  },
+  "limitations": [
+    "Results describe deterministic local analysis only and are not external-provider latency.",
+    "Hardware, power state, and background workload affect results."
+  ]
+}

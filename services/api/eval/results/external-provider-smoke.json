@@ -1,0 +1,33 @@
+{
+  "verified_at_utc": "2026-07-10T15:08:56.325878+00:00",
+  "endpoint": "https://models.github.ai/inference/chat/completions",
+  "provider": "GitHub Models",
+  "requested_model": "openai/gpt-4.1-mini",
+  "synthetic_cases": [
+    {
+      "reference": "SMOKE-EN",
+      "language": "en",
+      "category": "incident",
+      "priority": "critical",
+      "risk_score": 90,
+      "confidence": 0.9,
+      "provider": "github-models:openai/gpt-4.1-mini",
+      "top_policy": "incident__en__response"
+    },
+    {
+      "reference": "SMOKE-AR",
+      "language": "ar",
+      "category": "access",
+      "priority": "medium",
+      "risk_score": 50,
+      "confidence": 0.95,
+      "provider": "github-models:openai/gpt-4.1-mini",
+      "top_policy": "access__ar__least-privilege"
+    }
+  ],
+  "verified": true,
+  "limitations": [
+    "This smoke test verifies connectivity and schema-constrained responses for two synthetic cases.",
+    "It is not a quality benchmark or availability guarantee for the external service."
+  ]
+}

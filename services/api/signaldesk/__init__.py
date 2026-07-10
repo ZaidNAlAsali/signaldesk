@@ -1,0 +1,1 @@
+"""SignalDesk API package."""
