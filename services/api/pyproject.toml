@@ -1,6 +1,6 @@
 [project]
 name = "signaldesk-api"
-version = "0.1.0"
+version = "0.3.0"
 description = "Auditable AI-assisted operations triage API"
 requires-python = ">=3.11"
 dependencies = [

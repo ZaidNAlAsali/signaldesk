@@ -54,7 +54,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="SignalDesk API",
-    version="0.2.0",
+    version="0.3.0",
     description="Auditable, human-in-the-loop operations triage.",
     lifespan=lifespan,
 )

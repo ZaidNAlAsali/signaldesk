@@ -90,6 +90,7 @@ describe("Dashboard", () => {
   it("renders Arabic case content RTL and verifies the audit chain", async () => {
     render(<Dashboard />);
 
+    expect(screen.getByRole("heading", { name: "Context before conclusions." })).toBeInTheDocument();
     const heading = await screen.findByRole("heading", { name: CASE.title });
     expect(heading).toHaveAttribute("dir", "rtl");
     await waitFor(() => expect(screen.getByText("1 events verified")).toBeInTheDocument());
@@ -101,10 +102,28 @@ describe("Dashboard", () => {
     await screen.findByRole("heading", { name: CASE.title });
 
     fireEvent.click(screen.getByRole("button", { name: "New request" }));
+    expect(screen.getByLabelText("Title")).toHaveFocus();
     fireEvent.change(screen.getByLabelText("Language"), { target: { value: "ar" } });
 
     expect(screen.getByLabelText("Title")).toHaveAttribute("dir", "rtl");
     expect(screen.getByLabelText("Description")).toHaveAttribute("dir", "rtl");
     expect(screen.getByLabelText("Requester")).toHaveAttribute("dir", "rtl");
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Create a request" })).not.toBeInTheDocument();
+  });
+
+  it("makes queue search and review filters explicit", async () => {
+    render(<Dashboard />);
+    await screen.findByRole("heading", { name: CASE.title });
+
+    expect(screen.getByRole("button", { name: "All" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.change(screen.getByRole("textbox", { name: "Search requests" }), { target: { value: "missing request" } });
+    expect(screen.getByText("No matching requests")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Search requests" }), { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "Open" }));
+    expect(screen.getByRole("button", { name: "Open" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: new RegExp(CASE.reference) })).toHaveAttribute("aria-current", "true");
   });
 });

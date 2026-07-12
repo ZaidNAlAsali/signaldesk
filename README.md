@@ -6,9 +6,39 @@
 
 SignalDesk turns English and Arabic operational requests into structured categories, priorities, risk scores, recommended actions, and policy citations. AI provides decision support; the demo requires an explicit approve, reject, or override step, but does not authenticate reviewer identity.
 
-![SignalDesk decision console](docs/screenshots/signaldesk-dashboard.png)
+## Interface gallery
 
-<p align="center"><img src="docs/screenshots/signaldesk-mobile.png" width="360" alt="SignalDesk responsive mobile queue" /></p>
+SignalDesk is designed as a human decision room rather than a generic analytics dashboard. The dispatch ledger keeps incoming work visible while the case dossier places the original request, model output, cited controls, reviewer decision, and audit evidence in one reading path. Screenshots use fictional demonstration requests and identities.
+
+![SignalDesk bilingual decision room](docs/screenshots/signaldesk-dashboard.png)
+
+<details>
+<summary><strong>Human review and override</strong></summary>
+
+![SignalDesk explicit human approval, rejection, and override controls](docs/screenshots/signaldesk-decision.png)
+
+</details>
+
+<details>
+<summary><strong>Arabic and mixed-direction review</strong></summary>
+
+![SignalDesk Arabic request with RTL content and bilingual policy grounding](docs/screenshots/signaldesk-arabic.png)
+
+</details>
+
+<details>
+<summary><strong>Bilingual request intake</strong></summary>
+
+![SignalDesk request intake with explicit language selection](docs/screenshots/signaldesk-intake.png)
+
+</details>
+
+<details>
+<summary><strong>Compact responsive workspace</strong></summary>
+
+<p align="center"><img src="docs/screenshots/signaldesk-mobile.png" width="430" alt="SignalDesk responsive mobile queue" /></p>
+
+</details>
 
 ## Why this project exists
 
